@@ -27,6 +27,8 @@ class RoleController extends Controller
             $role->permissions()->attach($request->permissions);
         }
 
+        audit_trail('Role', 'Tambah', 'Tambah data role '.$request->nama);
+
         return response()->json($role->load('permissions'), 201);
     }
 
@@ -52,6 +54,8 @@ class RoleController extends Controller
             $role->permissions()->sync($request->permissions);
         }
 
+        audit_trail('Role', 'Update', 'Update data role '.$request->nama);
+
         return response()->json($role->load('permissions'));
     }
 
@@ -59,6 +63,9 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
         $role->permissions()->detach();
+
+        audit_trail('Role', 'Hapus', 'Hapus data role '.$role->nama);
+
         $role->delete();
 
         return response()->json(['message' => 'Role deleted']);

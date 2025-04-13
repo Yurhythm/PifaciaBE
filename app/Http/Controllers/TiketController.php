@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\Tiket;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class TiketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'event_id' => 'required|exists:events,id',
+            'event_id' => 'required|exists:event,id',
             'tipe'     => 'required|string|max:255',
             'harga'    => 'required|numeric|min:0',
             'tersedia' => 'boolean',
@@ -34,6 +35,10 @@ class TiketController extends Controller
             'tersedia' => $request->tersedia ?? true,
             'fitur'    => $request->fitur,
         ]);
+
+        $event = Event::find($request->event_id);
+
+        audit_trail('Tiket', 'Tambah', 'Tambah data tiket event'.$event->judul);
 
         return response()->json($tiket, 201);
     }
@@ -52,12 +57,20 @@ class TiketController extends Controller
 
         $tiket->update($request->only(['event_id', 'tipe', 'harga', 'tersedia', 'fitur']));
 
+        $event = Event::find($request->event_id);
+
+        audit_trail('Tiket', 'Update', 'Update data tiket event'.$event->judul);
+
         return response()->json($tiket);
     }
 
     public function destroy($id)
     {
         $tiket = Tiket::findOrFail($id);
+
+        $event = Event::find($tiket->event_id);
+        audit_trail('Tiket', 'Hapus', 'Hapus data tiket event'.$event->judul);
+
         $tiket->delete();
 
         return response()->json(['message' => 'Tiket deleted']);

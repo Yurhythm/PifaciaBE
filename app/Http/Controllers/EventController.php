@@ -41,6 +41,8 @@ class EventController extends Controller
             'metadata'     => $request->metadata,
         ]);
 
+        audit_trail('Event', 'Tambah', 'Tambah data event '.$request->judul);
+
         return response()->json($event, 201);
     }
 
@@ -66,6 +68,8 @@ class EventController extends Controller
 
         $event->update($request->only(['judul', 'mulai_pada', 'selesai_pada', 'daring', 'metadata']));
 
+        audit_trail('Event', 'Update', 'Update data event '.$request->judul);
+
         return response()->json($event);
     }
 
@@ -73,8 +77,12 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
         Storage::disk('public')->delete($event->brosur_pdf);
+
+        audit_trail('Event', 'Hapus', 'Hapus data event');
+
         $event->delete();
 
-        return response()->json(['message' => 'Event deleted']);
+
+        return response()->json(['message' => 'Event deleted '.$event->judul]);
     }
 }

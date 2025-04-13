@@ -38,6 +38,8 @@ class UserController extends Controller
             $user->roles()->sync($request->role_ids);
         }
 
+        audit_trail('User', 'Tambah', 'Tambah data user '.$request->name);
+
         return response()->json($user->load('roles'), 201);
     }
 
@@ -66,6 +68,8 @@ class UserController extends Controller
             $user->roles()->sync($request->role_ids);
         }
 
+        audit_trail('User', 'Update', 'Update data user '.$request->name);
+
         return response()->json($user->load('roles'));
     }
 
@@ -73,6 +77,9 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $user->roles()->detach();
+
+        audit_trail('User', 'Hapus', 'Hapus data user '.$user->name);
+
         $user->delete();
 
         return response()->json(['message' => 'User deleted']);

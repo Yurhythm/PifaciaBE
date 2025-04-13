@@ -35,6 +35,8 @@ class PesertaController extends Controller
             'daftar_pada'   => $request->daftar_pada,
         ]);
 
+        audit_trail('Peserta', 'Tambah', 'Tambah data peserta '.$request->nama);
+
         return response()->json($peserta, 201);
     }
 
@@ -58,12 +60,16 @@ class PesertaController extends Controller
             'daftar_pada'
         ]));
 
+        audit_trail('Peserta', 'Update', 'Update data peserta '.$request->nama);
+
         return response()->json($peserta);
     }
 
     public function destroy($id)
     {
         $peserta = Peserta::findOrFail($id);
+        audit_trail('Peserta', 'Hapus', 'Hapus data peserta '.$peserta->nama);
+
         $peserta->delete();
 
         return response()->json(['message' => 'Peserta deleted']);
