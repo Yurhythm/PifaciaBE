@@ -15,7 +15,9 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $request->email)->with('roles')->first();
+        $user = User::where('email', $request->email)
+            ->with('roles.permissions') // include permissions
+            ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
@@ -23,13 +25,20 @@ class AuthController extends Controller
 
         $token = $user->createToken('api_token')->plainTextToken;
 
+        // Kumpulkan semua permission dari semua role
+        $permissions = $user->roles
+            ->flatMap(fn($role) => $role->permissions->pluck('name'))
+            ->unique()
+            ->values();
+
         return response()->json([
             'token' => $token,
             'user'  => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-                'roles' => $user->roles->pluck('name'),
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'roles'      => $user->roles->pluck('name'),
+                'permissions' => $permissions,
             ],
         ]);
     }
