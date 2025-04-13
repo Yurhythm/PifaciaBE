@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('event', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('judul');
-            $table->string('banner');
+            $table->string('brosur_pdf');
             $table->dateTime('mulai_pada');
             $table->dateTime('selesai_pada');
             $table->boolean('daring')->default(false);

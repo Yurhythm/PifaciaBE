@@ -16,9 +16,7 @@ return new class extends Migration
             $table->uuid('tiket_id');
             $table->string('nama');
             $table->string('email');
-            $table->string('foto');
             $table->boolean('sudah_checkin')->default(false);
-            $table->json('preferensi')->nullable();
             $table->dateTime('daftar_pada');
             $table->timestamps();
 

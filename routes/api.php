@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TiketController;
 use App\Http\Controllers\UserController;
-use App\Models\Role;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,4 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('user', UserController::class);
     Route::apiResource('role', RoleController::class);
+
+    Route::apiResource('event', EventController::class);
+    Route::apiResource('tiket', TiketController::class);
+    Route::apiResource('peserta', PesertaController::class);
 });
