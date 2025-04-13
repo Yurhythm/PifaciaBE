@@ -15,7 +15,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->with('roles')->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
@@ -25,7 +25,12 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => $user
+            'user'  => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name'),
+            ],
         ]);
     }
 
