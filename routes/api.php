@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditTrailController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\JobStatusController;
@@ -37,4 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/peserta/import', [PesertaController::class, 'import']);
     Route::post('/peserta/export', [PesertaController::class, 'export']);
     Route::get('/check-queue-status/{id}', [JobStatusController::class, 'checkQueueStatus']);
+    Route::get('/audit-trails', [AuditTrailController::class, 'index']);
 });

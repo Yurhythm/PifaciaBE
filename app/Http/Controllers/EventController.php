@@ -14,9 +14,19 @@ use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Event::all();
+        $query = Event::query();
+
+        if ($request->search) {
+            $query->where('judul', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->sort_by) {
+            $query->orderBy($request->sort_by, $request->sort_dir ?? 'asc');
+        }
+
+        return $query->paginate(10);
     }
 
     public function show($id)
@@ -28,7 +38,7 @@ class EventController extends Controller
     {
         $request->validate([
             'judul'        => 'required|string|max:255',
-            'brosur_pdf'   => 'required|mimes:pdf|file|between:100,500',
+            'brosur_pdf'   => 'mimes:pdf|file|between:100,500',
             'mulai_pada'   => 'required|date',
             'selesai_pada' => 'required|date|after_or_equal:mulai_pada',
             'daring'       => 'boolean',
@@ -36,7 +46,10 @@ class EventController extends Controller
         ]);
 
         // Upload file PDF
-        $path = $request->file('brosur_pdf')->store('brosur', 'public');
+        $path = null;
+        if ($request->hasFile('brosur_pdf') && $request->file('brosur_pdf')->isValid()) {
+            $path = $request->file('brosur_pdf')->store('brosur', 'public');
+        }
 
         $event = Event::create([
             'judul'        => $request->judul,
@@ -82,8 +95,9 @@ class EventController extends Controller
     public function destroy($id)
     {
         $event = Event::findOrFail($id);
-        Storage::disk('public')->delete($event->brosur_pdf);
-
+        if ($event->brosur_pdf != null) {
+            Storage::disk('public')->delete($event->brosur_pdf);
+        }
         audit_trail('Event', 'Hapus', 'Hapus data event');
 
         $event->delete();
