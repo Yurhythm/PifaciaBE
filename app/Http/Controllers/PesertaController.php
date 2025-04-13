@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ExportPesertaJob;
+use App\Jobs\ImportPesertaJob;
+use App\Models\JobStatus;
 use App\Models\Peserta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PesertaController extends Controller
 {
@@ -73,5 +77,55 @@ class PesertaController extends Controller
         $peserta->delete();
 
         return response()->json(['message' => 'Peserta deleted']);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'in:id,event_id,event_judul,tipe,harga,tersedia,fitur,created_at,updated_at'
+        ]);
+
+        $jobId = (string) Str::uuid();
+
+        JobStatus::create([
+            'id' => $jobId,
+            'type' => 'peserta_export',
+            'status' => 'pending',
+        ]);
+
+        ExportPesertaJob::dispatch($request->fields, $jobId);
+
+        audit_trail('Peserta', 'Export', 'Export data peserta event');
+
+        return response()->json([
+            'message' => 'Export job started.',
+            'job_id' => $jobId,
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        $jobId = (string) Str::uuid();
+        $path = $request->file('file')->storeAs('imports', 'tiket-' . $jobId . '.xlsx');
+
+        JobStatus::create([
+            'id' => $jobId,
+            'type' => 'peserta_import',
+            'status' => 'pending'
+        ]);
+
+        ImportPesertaJob::dispatch($path, $jobId);
+
+        audit_trail('Peserta', 'Import', 'Import data peserta event');
+
+        return response()->json([
+            'message' => 'Import job started.',
+            'job_id' => $jobId
+        ]);
     }
 }

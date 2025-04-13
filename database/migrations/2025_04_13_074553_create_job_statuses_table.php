@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event', function (Blueprint $table) {
+        Schema::create('job_statuses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('judul');
-            $table->string('brosur_pdf')->nullable();
-            $table->dateTime('mulai_pada');
-            $table->dateTime('selesai_pada');
-            $table->boolean('daring')->default(false);
-            $table->json('metadata')->nullable();
+            $table->string('type');
+            $table->string('attachment');
+            $table->enum('status', ['pending', 'processing', 'success', 'failed'])->default('pending');
+            $table->text('message')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event');
+        Schema::dropIfExists('job_statuses');
     }
 };

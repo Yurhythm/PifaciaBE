@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ExportTicketJob;
+use App\Jobs\ImportTicketJob;
 use App\Models\Event;
+use App\Models\JobStatus;
 use App\Models\Tiket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class TiketController extends Controller
 {
@@ -38,7 +42,7 @@ class TiketController extends Controller
 
         $event = Event::find($request->event_id);
 
-        audit_trail('Tiket', 'Tambah', 'Tambah data tiket event'.$event->judul);
+        audit_trail('Tiket', 'Tambah', 'Tambah data tiket event '.$event->judul);
 
         return response()->json($tiket, 201);
     }
@@ -59,7 +63,7 @@ class TiketController extends Controller
 
         $event = Event::find($request->event_id);
 
-        audit_trail('Tiket', 'Update', 'Update data tiket event'.$event->judul);
+        audit_trail('Tiket', 'Update', 'Update data tiket event '.$event->judul);
 
         return response()->json($tiket);
     }
@@ -69,10 +73,60 @@ class TiketController extends Controller
         $tiket = Tiket::findOrFail($id);
 
         $event = Event::find($tiket->event_id);
-        audit_trail('Tiket', 'Hapus', 'Hapus data tiket event'.$event->judul);
+        audit_trail('Tiket', 'Hapus', 'Hapus data tiket event '.$event->judul);
 
         $tiket->delete();
 
         return response()->json(['message' => 'Tiket deleted']);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'fields' => 'required|array|min:1',
+            'fields.*' => 'in:id,event_id,event_judul,tipe,harga,tersedia,fitur,created_at,updated_at'
+        ]);
+
+        $jobId = (string) Str::uuid();
+
+        JobStatus::create([
+            'id' => $jobId,
+            'type' => 'tiket_export',
+            'status' => 'pending',
+        ]);
+
+        ExportTicketJob::dispatch($request->fields, $jobId);
+
+        audit_trail('Tiket', 'Export', 'Export data tiket event');
+
+        return response()->json([
+            'message' => 'Export job started.',
+            'job_id' => $jobId,
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        $jobId = (string) Str::uuid();
+        $path = $request->file('file')->storeAs('imports', 'tiket-' . $jobId . '.xlsx');
+
+        JobStatus::create([
+            'id' => $jobId,
+            'type' => 'tiket_import',
+            'status' => 'pending'
+        ]);
+
+        ImportTicketJob::dispatch($path, $jobId);
+
+        audit_trail('Tiket', 'Import', 'Import data tiket event');
+
+        return response()->json([
+            'message' => 'Import job started.',
+            'job_id' => $jobId
+        ]);
     }
 }
