@@ -12,10 +12,33 @@ use Illuminate\Support\Str;
 
 class TiketController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Tiket::with('event')->get();
+        $query = Tiket::query()->join('event', 'event.id', 'tiket.event_id');
+
+        if ($request->search) {
+            $query->where('tipe', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->sort_by) {
+            $query->orderBy($request->sort_by, $request->sort_dir ?? 'asc');
+        }
+
+        $query->select('tiket.*', 'event.judul');
+        return $query->paginate(10);
     }
+
+    public function tiketList($event_id)
+    {
+        $tikets = Tiket::where('event_id', $event_id)->get();
+
+        return response()->json($tikets);
+    }
+
+    // public function index()
+    // {
+    //     return Tiket::with('event')->get();
+    // }
 
     public function show($id)
     {
@@ -42,7 +65,7 @@ class TiketController extends Controller
 
         $event = Event::find($request->event_id);
 
-        audit_trail('Tiket', 'Tambah', 'Tambah data tiket event '.$event->judul);
+        audit_trail('Tiket', 'Tambah', 'Tambah data tiket event ' . $event->judul);
 
         return response()->json($tiket, 201);
     }
@@ -52,7 +75,7 @@ class TiketController extends Controller
         $tiket = Tiket::findOrFail($id);
 
         $request->validate([
-            'event_id' => 'sometimes|exists:events,id',
+            'event_id' => 'sometimes|exists:event,id',
             'tipe'     => 'sometimes|string|max:255',
             'harga'    => 'sometimes|numeric|min:0',
             'tersedia' => 'boolean',
@@ -63,7 +86,7 @@ class TiketController extends Controller
 
         $event = Event::find($request->event_id);
 
-        audit_trail('Tiket', 'Update', 'Update data tiket event '.$event->judul);
+        audit_trail('Tiket', 'Update', 'Update data tiket event ' . $event->judul);
 
         return response()->json($tiket);
     }
@@ -73,7 +96,7 @@ class TiketController extends Controller
         $tiket = Tiket::findOrFail($id);
 
         $event = Event::find($tiket->event_id);
-        audit_trail('Tiket', 'Hapus', 'Hapus data tiket event '.$event->judul);
+        audit_trail('Tiket', 'Hapus', 'Hapus data tiket event ' . $event->judul);
 
         $tiket->delete();
 

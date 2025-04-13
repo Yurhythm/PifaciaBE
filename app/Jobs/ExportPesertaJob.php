@@ -14,11 +14,13 @@ class ExportPesertaJob implements ShouldQueue
 {
     use Dispatchable, Queueable, SerializesModels;
 
-    public $jobStatusId;
+    protected $fields;
+    protected $jobId;
 
-    public function __construct($jobStatusId)
+    public function __construct(array $fields, string $jobId)
     {
-        $this->jobStatusId = $jobStatusId;
+        $this->fields = $fields;
+        $this->jobId = $jobId;
     }
 
     public function handle()
@@ -27,16 +29,18 @@ class ExportPesertaJob implements ShouldQueue
 
         try {
             $filename = 'exports/peserta-' . now()->format('YmdHis') . '-' . $this->jobId . '.xlsx';
-            Excel::store(new PesertaExport, 'public/'.$filename, 'local');
-            JobStatus::where('id', $this->jobStatusId)->update([
-                'status'     => 'completed',
+
+            Excel::store(new PesertaExport($this->fields), 'public/' . $filename, 'local');
+
+            JobStatus::where('id', $this->jobId)->update([
+                'status' => 'success',
                 'attachment' => $filename,
-                'message' => 'Event export berhasil.'
+                'message' => 'Peserta export berhasil.'
             ]);
         } catch (\Exception $e) {
-            JobStatus::where('id', $this->jobStatusId)->update([
+            JobStatus::where('id', $this->jobId)->update([
                 'status' => 'failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
         }
     }

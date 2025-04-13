@@ -29,6 +29,12 @@ class EventController extends Controller
         return $query->paginate(10);
     }
 
+    public function eventList()
+    {
+        return Event::all();
+    }
+
+
     public function show($id)
     {
         return Event::findOrFail($id);

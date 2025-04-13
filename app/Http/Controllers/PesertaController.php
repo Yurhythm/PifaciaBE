@@ -11,10 +11,26 @@ use Illuminate\Support\Str;
 
 class PesertaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Peserta::with('tiket.event')->get();
+        $query = Peserta::query()->join('tiket', 'tiket.id', 'peserta.tiket_id')->join('event', 'event.id', 'tiket.event_id');
+
+        if ($request->search) {
+            $query->where('nama', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->sort_by) {
+            $query->orderBy($request->sort_by, $request->sort_dir ?? 'asc');
+        }
+
+        $query->select('peserta.*', 'event.judul', 'tiket.tipe')->with('tiket.event');
+        return $query->paginate(10);
     }
+
+    // public function index()
+    // {
+    //     return Peserta::with('tiket.event')->get();
+    // }
 
     public function show($id)
     {
@@ -39,7 +55,7 @@ class PesertaController extends Controller
             'daftar_pada'   => $request->daftar_pada,
         ]);
 
-        audit_trail('Peserta', 'Tambah', 'Tambah data peserta '.$request->nama);
+        audit_trail('Peserta', 'Tambah', 'Tambah data peserta ' . $request->nama);
 
         return response()->json($peserta, 201);
     }
@@ -64,7 +80,7 @@ class PesertaController extends Controller
             'daftar_pada'
         ]));
 
-        audit_trail('Peserta', 'Update', 'Update data peserta '.$request->nama);
+        audit_trail('Peserta', 'Update', 'Update data peserta ' . $request->nama);
 
         return response()->json($peserta);
     }
@@ -72,7 +88,7 @@ class PesertaController extends Controller
     public function destroy($id)
     {
         $peserta = Peserta::findOrFail($id);
-        audit_trail('Peserta', 'Hapus', 'Hapus data peserta '.$peserta->nama);
+        audit_trail('Peserta', 'Hapus', 'Hapus data peserta ' . $peserta->nama);
 
         $peserta->delete();
 
@@ -83,7 +99,7 @@ class PesertaController extends Controller
     {
         $request->validate([
             'fields' => 'required|array|min:1',
-            'fields.*' => 'in:id,event_id,event_judul,tipe,harga,tersedia,fitur,created_at,updated_at'
+            'fields.*' => 'in:id,event_id,event_judul,tipe_tiket,nama,email,sudah_checkin,daftar_pada,created_at,updated_at'
         ]);
 
         $jobId = (string) Str::uuid();

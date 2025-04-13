@@ -20,8 +20,8 @@ class PesertaImport implements OnEachRow, WithHeadingRow
         if (!$event) return;
 
         $tiket = Tiket::where('event_id', $event->id)
-                      ->where('tipe', $data['tipe_tiket'])
-                      ->first();
+            ->where('tipe', $data['tipe_tiket'])
+            ->first();
         if (!$tiket) return;
 
         Peserta::updateOrCreate(

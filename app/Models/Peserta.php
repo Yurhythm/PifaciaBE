@@ -40,6 +40,6 @@ class Peserta extends Model
 
     public function event()
     {
-        return $this->tiket->event(); // lewat relasi tiket
+        return $this->tiket->event();
     }
 }

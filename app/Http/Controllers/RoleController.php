@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
 
@@ -85,5 +86,11 @@ class RoleController extends Controller
             'role' => $role->name,
             'permissions' => $permissions
         ]);
+    }
+
+    public function getPermissionsList()
+    {
+        $permissions = Permission::all();
+        return response()->json($permissions);
     }
 }

@@ -28,17 +28,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:user')->apiResource('user', UserController::class);
     Route::middleware('permission:role')->apiResource('role', RoleController::class);
     Route::get('/role/permissions/{name}', [RoleController::class, 'getPermissions']);
+    Route::get('/permissions-list/', [RoleController::class, 'getPermissionsList']);
 
     Route::middleware('permission:event')->group(function () {
         Route::apiResource('event', EventController::class);
         Route::post('/event/import', [EventController::class, 'import']);
         Route::post('/event/export', [EventController::class, 'export']);
     });
+    Route::get('/event-list', [EventController::class, 'eventList']);
+
     Route::middleware('permission:tiket')->group(function () {
         Route::apiResource('tiket', TiketController::class);
         Route::post('/tiket/import', [TiketController::class, 'import']);
         Route::post('/tiket/export', [TiketController::class, 'export']);
     });
+    Route::get('/tiket-list/{event_id}', [TiketController::class, 'tiketList']);
+
     Route::middleware('permission:peserta')->group(function () {
         Route::apiResource('peserta', PesertaController::class);
         Route::post('/peserta/import', [PesertaController::class, 'import']);

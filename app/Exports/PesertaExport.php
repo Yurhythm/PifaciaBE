@@ -8,31 +8,37 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class PesertaExport implements FromCollection, WithHeadings
 {
+    protected $fields;
+
+    public function __construct(array $fields)
+    {
+        $this->fields = $fields;
+    }
+
     public function collection()
     {
-        return Peserta::with('tiket.event')->get()->map(function ($peserta) {
-            return [
-                'id'            => $peserta->id,
-                'event_judul'   => $peserta->tiket->event->judul ?? null,
-                'tipe_tiket'    => $peserta->tiket->tipe ?? null,
-                'nama'          => $peserta->nama,
-                'email'         => $peserta->email,
-                'sudah_checkin' => $peserta->sudah_checkin,
-                'daftar_pada'   => $peserta->daftar_pada,
-            ];
-        });
+        return Peserta::with('tiket.event')
+            ->get()
+            ->map(function ($peserta) {
+                $data = [];
+
+                foreach ($this->fields as $field) {
+                    if ($field === 'event_judul') {
+                        $data[$field] = $peserta->event->judul ?? null;
+                    } else
+                    if ($field === 'tipe_tiket') {
+                        $data[$field] = $peserta->tiket->tipe ?? null;
+                    } else {
+                        $data[$field] = $peserta->$field ?? null;
+                    }
+                }
+
+                return $data;
+            });
     }
 
     public function headings(): array
     {
-        return [
-            'id',
-            'event_judul',
-            'tipe_tiket',
-            'nama',
-            'email',
-            'sudah_checkin',
-            'daftar_pada',
-        ];
+        return $this->fields;
     }
 }
