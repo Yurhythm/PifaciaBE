@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::middleware('permission:user')->apiResource('user', UserController::class);
     Route::middleware('permission:role')->apiResource('role', RoleController::class);
+    Route::get('/role/permissions/{name}', [RoleController::class, 'getPermissions']);
 
     Route::middleware('permission:event')->group(function () {
         Route::apiResource('event', EventController::class);
