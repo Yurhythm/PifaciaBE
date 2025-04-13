@@ -12,4 +12,9 @@ class AuditTrail extends Model
     protected $fillable = [
         'user_id', 'menu', 'action', 'description'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

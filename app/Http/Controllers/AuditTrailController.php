@@ -12,9 +12,9 @@ class AuditTrailController extends Controller
         $query = AuditTrail::with('user');
 
         if ($request->has('menu')) {
-            $query->where('menu', $request->menu);
+            $query->where('menu', $request->menu)->orderBy('created_at','DESC');
         }
 
-        return response()->json($query->latest()->get());
+        return response()->json($query->latest()->paginate(10));
     }
 }
