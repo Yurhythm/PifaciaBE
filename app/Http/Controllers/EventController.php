@@ -104,7 +104,7 @@ class EventController extends Controller
         if ($event->brosur_pdf != null) {
             Storage::disk('public')->delete($event->brosur_pdf);
         }
-        audit_trail('Event', 'Hapus', 'Hapus data event');
+        audit_trail('Event', 'Hapus', 'Hapus data event '. $event->judul);
 
         $event->delete();
 
